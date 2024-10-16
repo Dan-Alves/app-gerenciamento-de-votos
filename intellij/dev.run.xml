@@ -1,0 +1,8 @@
+<component name="ProjectRunConfigurationManager">
+    <configuration default="false" name="Gerenciamendo de Votos - DEV" type="Application" factoryName="Application" folderName="Run Intellij">
+        <envs>
+        </envs>
+        <option name="MAIN_CLASS_NAME" value="com.desafio.gerenciamento_de_votos.GerenciamentoDeVotosApplication" />
+        <module name="gerenciamento-de-votos" />
+    </configuration>
+</component>
