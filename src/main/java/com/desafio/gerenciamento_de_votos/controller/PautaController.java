@@ -22,5 +22,21 @@ public class PautaController {
     @Autowired
     private ResponseMapper mapper;
 
+    @GetMapping
+    public ResponseEntity<List<PautaDTO>> get() {
+        List<Pauta> pautas = service.findAll();
+        return ResponseEntity.ok(mapper.convert(pautas));
+    }
+
+    @PostMapping
+    public ResponseEntity<Pauta> criarPauta(@RequestBody Pauta pauta) {
+        return ResponseEntity.ok(service.save(pauta));
+    }
+
+    @PostMapping("/{id}/abrir-sessao")
+    public ResponseEntity<Pauta> abrirSessao(@PathVariable String id,
+                                             @RequestParam(defaultValue = "1") int duration) {
+        return ResponseEntity.ok(service.abrirSessao(id, duration));
+    }
 
 }
