@@ -1,4 +1,4 @@
-- Tecnologias utilizadas:
+Tecnologias utilizadas:
 + Java 17
 + Spring Boot
 + MongoDB
@@ -7,9 +7,9 @@
 + Log4j
 + Lombok
 
-- Para armazenar as informações, foi criado o banco de dados "votacao_db" e as Collections "pautas" e "votos".
+Para armazenar as informações, foi criado o banco de dados "votacao_db" e as Collections "pautas" e "votos".
 
-- Endpoints:
+Endpoints:
 
 Criação de Pauta:
 
