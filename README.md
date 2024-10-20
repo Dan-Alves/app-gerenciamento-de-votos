@@ -22,13 +22,13 @@ Endpoint -> curl --location --request POST 'http://localhost:8080/api/pauta' \
 
 Abrir sessão:
 
-Endpoint -> curl --location --request POST 'http://localhost:8080/api/pauta/{pautaId}/abrir-sessao'
+Endpoint -> curl --location --request POST 'http://localhost:8080/api/pauta/:pautaId/abrir-sessao'
 
 ![abrirSessao](https://github.com/user-attachments/assets/9d0e7118-b3b0-47ce-af0e-9a76077fda70)
 
 Votação:
 
-Endpoint -> curl --location --request POST 'http://localhost:8080/api/voto/pautaId/{pautaId}/associadoId/{associadoId}' \
+Endpoint -> curl --location --request POST 'http://localhost:8080/api/voto/pautaId/:pautaId/associadoId/:associadoId' \
 --header 'Content-Type: application/json' \
 --data-raw '{
     "voto": "NAO"
@@ -45,7 +45,7 @@ Endpoint -> curl --location --request GET 'http://localhost:8080/api/pauta'
 
 Resultado:
 
-Endpoint -> curl --location --request GET 'http://localhost:8080/api/pauta/resultado/{pautaId}'
+Endpoint -> curl --location --request GET 'http://localhost:8080/api/pauta/resultado/:pautaId'
 
 ![resultado](https://github.com/user-attachments/assets/703d1b6a-d21a-4d12-a9e1-18d32355bd2c)
 
