@@ -7,7 +7,9 @@ Tecnologias utilizadas:
 + Log4j
 + Lombok
 
-Endpoints:
++ Para armazenar as informações, foi criado o banco de dados "votacao_db" e as Collections "pautas" e "votos".
+
++ Endpoints:
 
 Criação de Pauta:
 
