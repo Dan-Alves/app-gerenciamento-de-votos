@@ -7,6 +7,8 @@ Tecnologias utilizadas:
 + Log4j
 + Lombok
 
+Endpoints:
+
 Criação de Pauta:
 
 Endpoint -> curl --location --request POST 'http://localhost:8080/api/pauta' \
