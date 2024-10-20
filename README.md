@@ -1,6 +1,15 @@
+Tecnologias utilizadas:
++ Java 17
++ Spring Boot
++ MongoDB
++ Mockito
++ JUnit
++ Log4j
++ Lombok
+
 Criação de Pauta:
 
-Entpoint -> curl --location --request POST 'http://localhost:8080/api/pauta' \
+Endpoint -> curl --location --request POST 'http://localhost:8080/api/pauta' \
 --header 'Content-Type: application/json' \
 --data-raw '{
     "titulo": "Aprovação 3",
