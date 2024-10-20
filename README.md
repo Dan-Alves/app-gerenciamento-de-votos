@@ -12,6 +12,8 @@ Para armazenar as informações, foi criado o banco de dados "votacao_db" e as C
 + db.createCollection("pautas")
 + db.createCollection("votos")
 
+Foi utizado tag para auxiliar no versionamento e referência do projeto.
+
 Endpoints:
 
 + Criação de Pauta:
