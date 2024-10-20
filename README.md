@@ -8,9 +8,9 @@ Tecnologias utilizadas:
 + Lombok
 
 Para armazenar as informações, foi criado o banco de dados "votacao_db" e as Collections "pautas" e "votos" com os seguintes comandos:
-use votacao_db
-db.createCollection("pautas")
-db.createCollection("votos")
++ use votacao_db
++ db.createCollection("pautas")
++ db.createCollection("votos")
 
 Endpoints:
 
