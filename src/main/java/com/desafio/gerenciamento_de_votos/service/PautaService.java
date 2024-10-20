@@ -9,7 +9,9 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
@@ -28,7 +30,7 @@ public class PautaService {
     private static final Logger logger = LogManager.getLogger(PautaService.class);
 
     public Pauta salvar(Pauta pauta) {
-        logger.info("Início do método salvar para a pauta: {}", pauta);
+        logger.info("Início do método salvar() para a pauta: {}", pauta);
 
         if (pauta.getStatus() == null) {
             pauta.setStatus(PautaEnum.CLOSED);
@@ -36,7 +38,7 @@ public class PautaService {
 
         Pauta pautaSalva = repository.save(pauta);
 
-        logger.info("Fim do método save() para a pauta: {}", pautaSalva);
+        logger.info("Fim do método salvar() para a pauta: {}", pautaSalva);
         return pautaSalva;
     }
 
@@ -53,7 +55,7 @@ public class PautaService {
         logger.info("Início do método abrirSessao() para a pautaId: {}", pautaId);
 
         Pauta pauta = repository.findById(String.valueOf(new ObjectId(pautaId)))
-                .orElseThrow(() -> new RuntimeException("Pauta não encontrada para o ID: " + pautaId));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Pauta não encontrada para o ID: " + pautaId));
 
         pauta.setDtAbertura(LocalDateTime.now());
         pauta.setDuracao(duracaoMinutos == null ? 1 : duracaoMinutos);
@@ -71,15 +73,13 @@ public class PautaService {
         Pauta pautaVerificada = verificaStatus(pautaId);
 
         if (!pautaVerificada.getStatus().equals(PautaEnum.OPEN)) {
-            throw new RuntimeException("A sessão não está aberta.");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "A sessão não está aberta.");
         }
-
 
         Optional<Voto> votoExistente = votoService.findByPautaIdAndAssociadoId(pautaId, associadoId);
         if (votoExistente.isPresent()) {
-            throw new RuntimeException("Associado já votou na pauta.");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Associado já votou na pauta.");
         }
-
         voto.setPautaId(pautaId);
         voto.setAssociadoId(associadoId);
         pautaVerificada.getVotos().add(voto);
@@ -95,7 +95,7 @@ public class PautaService {
         logger.info("Início do método obterResultado() para a pautaId: {}", pautaId);
 
         Pauta pauta = repository.findById(String.valueOf(new ObjectId(pautaId)))
-                .orElseThrow(() -> new RuntimeException("Pauta não encontrada para o ID: " + pautaId));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Pauta não encontrada para o ID: " + pautaId));
 
         long votosSim = pauta.getVotos().stream()
                 .filter(voto -> voto.getVoto().equals("SIM"))
@@ -119,7 +119,7 @@ public class PautaService {
         logger.info("Início do método verificaStatus() para a pautaId: {}", pautaId);
 
         Pauta pauta = repository.findById(String.valueOf(new ObjectId(pautaId)))
-                .orElseThrow(() -> new RuntimeException("Pauta não encontrada para o ID: " + pautaId));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Pauta não encontrada para o ID: " + pautaId));
 
         if (pauta.getStatus().equals(PautaEnum.OPEN)) {
             long tempoDecorrido = ChronoUnit.MINUTES.between(pauta.getDtAbertura(), LocalDateTime.now());
