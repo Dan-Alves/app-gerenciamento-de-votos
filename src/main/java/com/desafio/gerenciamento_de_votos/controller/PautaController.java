@@ -1,9 +1,11 @@
 package com.desafio.gerenciamento_de_votos.controller;
 
 import com.desafio.gerenciamento_de_votos.dto.PautaDTO;
+import com.desafio.gerenciamento_de_votos.dto.ResultadoDTO;
 import com.desafio.gerenciamento_de_votos.dto.VotoDTO;
 import com.desafio.gerenciamento_de_votos.mapper.ResponseMapper;
 import com.desafio.gerenciamento_de_votos.model.Pauta;
+import com.desafio.gerenciamento_de_votos.model.Resultado;
 import com.desafio.gerenciamento_de_votos.model.Voto;
 import com.desafio.gerenciamento_de_votos.service.PautaService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,20 +25,28 @@ public class PautaController {
     private ResponseMapper mapper;
 
     @GetMapping
-    public ResponseEntity<List<PautaDTO>> get() {
+    public ResponseEntity<List<PautaDTO>> obterPautas() {
         List<Pauta> pautas = service.findAll();
         return ResponseEntity.ok(mapper.convert(pautas));
     }
 
     @PostMapping
-    public ResponseEntity<Pauta> criarPauta(@RequestBody Pauta pauta) {
-        return ResponseEntity.ok(service.save(pauta));
+    public ResponseEntity<PautaDTO> criarPauta(@RequestBody Pauta pauta) {
+        Pauta p = service.salvar(pauta);
+        return ResponseEntity.ok(mapper.convert(p));
     }
 
-    @PostMapping("/{id}/abrir-sessao")
-    public ResponseEntity<Pauta> abrirSessao(@PathVariable String id,
+    @PostMapping("/{pautaId}/abrir-sessao")
+    public ResponseEntity<PautaDTO> abrirSessao(@PathVariable String pautaId,
                                              @RequestParam(defaultValue = "1") int duration) {
-        return ResponseEntity.ok(service.abrirSessao(id, duration));
+        Pauta pauta = service.abrirSessao(pautaId, duration);
+        return ResponseEntity.ok(mapper.convert(pauta));
+    }
+
+    @GetMapping("/resultado/{pautaId}")
+    public ResponseEntity<ResultadoDTO> obterResultado(@PathVariable String pautaId) {
+        Resultado resultado = service.obterResultado(pautaId);
+        return ResponseEntity.ok(mapper.convert(resultado));
     }
 
 }

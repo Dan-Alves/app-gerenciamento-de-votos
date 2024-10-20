@@ -1,9 +1,14 @@
 package com.desafio.gerenciamento_de_votos.service;
 
+import com.desafio.gerenciamento_de_votos.dto.ResultadoDTO;
 import com.desafio.gerenciamento_de_votos.enums.PautaEnum;
 import com.desafio.gerenciamento_de_votos.model.Pauta;
+import com.desafio.gerenciamento_de_votos.model.Resultado;
 import com.desafio.gerenciamento_de_votos.model.Voto;
 import com.desafio.gerenciamento_de_votos.repository.PautaRepository;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -12,6 +17,7 @@ import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class PautaService {
@@ -22,89 +28,114 @@ public class PautaService {
     @Autowired
     private VotoService votoService;
 
-    public Pauta save(Pauta pauta) {
+    private static final Logger logger = LogManager.getLogger(PautaService.class);
+
+    public Pauta salvar(Pauta pauta) {
+        logger.info("Início do método salvar para a pauta: {}", pauta);
+
         if (pauta.getStatus() == null) {
             pauta.setStatus(PautaEnum.CLOSED);
         }
-        return repository.save(pauta);
+
+        Pauta pautaSalva = repository.save(pauta);
+
+        logger.info("Fim do método save() para a pauta: {}", pautaSalva);
+        return pautaSalva;
     }
 
     public List<Pauta> findAll() {
-        return repository.findAll();
+        logger.info("Início do método findAll()");
+
+        List<Pauta> pautas = repository.findAll();
+
+        logger.info("Fim do método findAll() - Total de pautas: {}", pautas.size());
+        return pautas;
     }
 
-    public Pauta abrirSessao(String pautaId, int duracaoMinutos) {
-        Optional<Pauta> pautaOpt = repository.findById(pautaId);
+    public Pauta abrirSessao(String pautaId, Integer duracaoMinutos) {
+        logger.info("Início do método abrirSessao() para a pautaId: {}", pautaId);
 
-        if (pautaOpt.isPresent()) {
-            Pauta p = pautaOpt.get();
-            p.setDtAbertura(LocalDateTime.now());
-            p.setDtFechamento(LocalDateTime.now().plusMinutes(duracaoMinutos));
-            p.setStatus(PautaEnum.OPEN);
-        }
+        Pauta pauta = repository.findById(String.valueOf(new ObjectId(pautaId)))
+                .orElseThrow(() -> new RuntimeException("Pauta não encontrada para o ID: " + pautaId));
 
-        throw new RuntimeException("Pauta não encontrada.");
+        pauta.setDtAbertura(LocalDateTime.now());
+        pauta.setDuracao(duracaoMinutos == null ? 1 : duracaoMinutos);
+        pauta.setDtFechamento(LocalDateTime.now().plusMinutes(duracaoMinutos));
+        pauta.setStatus(PautaEnum.OPEN);
+        repository.save(pauta);
 
+        logger.info("Fim do método abrirSessao() para a pautaId: {}", pautaId);
+        return pauta;
     }
 
     public String votar(Voto voto, String pautaId, String associadoId) {
+        logger.info("Início do método votar() para a pautaId: {} e associadoId: {}", pautaId, associadoId);
+
         verificaStatus(pautaId);
+        Pauta pauta = repository.findById(String.valueOf(new ObjectId(pautaId)))
+                .orElseThrow(() -> new RuntimeException("Pauta não encontrada para o ID: " + pautaId));
 
-        Optional<Pauta> pautaOpt = repository.findById(pautaId);
-
-        if(pautaOpt.isPresent()) {
-            Pauta p = pautaOpt.get();
-
-            if (!p.getStatus().equals(PautaEnum.OPEN)) {
-                throw new RuntimeException("A sessão não está aberta.");
-            }
-
+        if (!pauta.getStatus().equals(PautaEnum.OPEN)) {
+            throw new RuntimeException("A sessão não está aberta.");
         }
+
 
         Optional<Voto> votoExistente = votoService.findByPautaIdAndAssociadoId(pautaId, associadoId);
         if (votoExistente.isPresent()) {
             throw new RuntimeException("Associado já votou na pauta.");
         }
 
+        voto.setPautaId(pautaId);
+        voto.setAssociadoId(associadoId);
+        pauta.getVotos().add(voto);
         votoService.save(voto);
+        repository.save(pauta);
 
+        logger.info("Fim do método votar() - Voto computado com sucesso para a pautaId: {}", pautaId);
         return "Voto computado com sucesso";
 
     }
 
-    private void verificaStatus(String pautaId) {
-        Optional<Pauta> pautaOpt = repository.findById(pautaId);
+    public Resultado obterResultado(String pautaId) {
+        logger.info("Início do método obterResultado() para a pautaId: {}", pautaId);
 
-        if(pautaOpt.isPresent()) {
-            Pauta p = pautaOpt.get();
+        Pauta pauta = repository.findById(String.valueOf(new ObjectId(pautaId)))
+                .orElseThrow(() -> new RuntimeException("Pauta não encontrada para o ID: " + pautaId));
 
-            if (p.getStatus().equals(PautaEnum.OPEN)) {
-                long tempoDecorrido = ChronoUnit.MINUTES.between(p.getDtAbertura(), LocalDateTime.now());
+        long votosSim = pauta.getVotos().stream()
+                .filter(voto -> voto.getVoto().equals("SIM"))
+                .count();
 
-                if (tempoDecorrido >= p.getDuracao()) {
-                    p.setStatus(PautaEnum.CLOSED);
-                    repository.save(p);
-                }
-            }
-        }
+        long votosNao = pauta.getVotos().stream()
+                .filter(voto -> voto.getVoto().equals("NAO"))
+                .count();
+
+        Resultado resultado = Resultado.builder()
+                .titulo(pauta.getTitulo())
+                .sim(votosSim)
+                .nao(votosNao)
+                .build();
+
+        logger.info("Fim do método obterResultado() - Resultado: {}", resultado);
+        return resultado;
     }
 
-//    @Scheduled(fixedRate = 60000)
-//    public void fecharSessoesExpiradas() {
-//        List<Pauta> pautasAbertas = repository.findAll().stream()
-//                .filter(p -> p.getStatus() == PautaEnum.OPEN)
-//                .toList();
-//
-//        for (Pauta pauta : pautasAbertas) {
-//            LocalDateTime now = LocalDateTime.now();
-//            long tempoDecorrido = ChronoUnit.MINUTES.between(pauta.getDtAbertura(), now);
-//
-//            if (tempoDecorrido >= pauta.getDuracao()) {
-//                pauta.setStatus(PautaEnum.CLOSED);
-//                repository.save(pauta);
-//                System.out.println("Sessão da pauta " + pauta.getTitulo() + " foi fechada automaticamente.");
-//            }
-//        }
-//    }
+    private void verificaStatus(String pautaId) {
+        logger.info("Início do método verificaStatus() para a pautaId: {}", pautaId);
+
+        Pauta pauta = repository.findById(String.valueOf(new ObjectId(pautaId)))
+                .orElseThrow(() -> new RuntimeException("Pauta não encontrada para o ID: " + pautaId));
+
+        if (pauta.getStatus().equals(PautaEnum.OPEN)) {
+            long tempoDecorrido = ChronoUnit.MINUTES.between(pauta.getDtAbertura(), LocalDateTime.now());
+
+            if (tempoDecorrido >= pauta.getDuracao()) {
+                pauta.setStatus(PautaEnum.CLOSED);
+                repository.save(pauta);
+            }
+        }
+
+        logger.info("Fim do método verificaStatus() para a pautaId: {}", pautaId);
+    }
 
 }

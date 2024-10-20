@@ -11,6 +11,7 @@ import jakarta.websocket.server.ServerEndpoint;
 import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
+import org.bson.types.ObjectId;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 @Data
@@ -20,7 +21,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 public class Voto {
 
     @Id
-    private Long id;
+    private String id;
 
     private String voto;
 

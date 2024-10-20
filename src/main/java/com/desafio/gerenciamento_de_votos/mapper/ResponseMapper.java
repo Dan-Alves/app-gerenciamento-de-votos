@@ -1,8 +1,10 @@
 package com.desafio.gerenciamento_de_votos.mapper;
 
 import com.desafio.gerenciamento_de_votos.dto.PautaDTO;
+import com.desafio.gerenciamento_de_votos.dto.ResultadoDTO;
 import com.desafio.gerenciamento_de_votos.dto.VotoDTO;
 import com.desafio.gerenciamento_de_votos.model.Pauta;
+import com.desafio.gerenciamento_de_votos.model.Resultado;
 import com.desafio.gerenciamento_de_votos.model.Voto;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +21,10 @@ public class ResponseMapper {
 
     public PautaDTO convert(Pauta pauta) {
         return modelMapper.map(pauta, PautaDTO.class);
+    }
+
+    public ResultadoDTO convert(Resultado resultado) {
+        return modelMapper.map(resultado, ResultadoDTO.class);
     }
 
     public VotoDTO convert(Voto voto) {

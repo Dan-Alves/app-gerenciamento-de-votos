@@ -1,5 +1,6 @@
 package com.desafio.gerenciamento_de_votos.dto;
 
+import com.desafio.gerenciamento_de_votos.enums.PautaEnum;
 import com.desafio.gerenciamento_de_votos.model.Voto;
 import lombok.Getter;
 import lombok.Setter;
@@ -26,6 +27,6 @@ public class PautaDTO {
 
     private LocalDateTime dtFechamento;
 
-    private Set<Voto> votos = new HashSet<>();
+    private PautaEnum status;
 
 }
