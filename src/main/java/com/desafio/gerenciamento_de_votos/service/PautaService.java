@@ -1,6 +1,5 @@
 package com.desafio.gerenciamento_de_votos.service;
 
-import com.desafio.gerenciamento_de_votos.dto.ResultadoDTO;
 import com.desafio.gerenciamento_de_votos.enums.PautaEnum;
 import com.desafio.gerenciamento_de_votos.model.Pauta;
 import com.desafio.gerenciamento_de_votos.model.Resultado;
@@ -10,14 +9,12 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 public class PautaService {
@@ -71,11 +68,9 @@ public class PautaService {
     public String votar(Voto voto, String pautaId, String associadoId) {
         logger.info("Início do método votar() para a pautaId: {} e associadoId: {}", pautaId, associadoId);
 
-        verificaStatus(pautaId);
-        Pauta pauta = repository.findById(String.valueOf(new ObjectId(pautaId)))
-                .orElseThrow(() -> new RuntimeException("Pauta não encontrada para o ID: " + pautaId));
+        Pauta pautaVerificada = verificaStatus(pautaId);
 
-        if (!pauta.getStatus().equals(PautaEnum.OPEN)) {
+        if (!pautaVerificada.getStatus().equals(PautaEnum.OPEN)) {
             throw new RuntimeException("A sessão não está aberta.");
         }
 
@@ -87,9 +82,9 @@ public class PautaService {
 
         voto.setPautaId(pautaId);
         voto.setAssociadoId(associadoId);
-        pauta.getVotos().add(voto);
+        pautaVerificada.getVotos().add(voto);
         votoService.save(voto);
-        repository.save(pauta);
+        repository.save(pautaVerificada);
 
         logger.info("Fim do método votar() - Voto computado com sucesso para a pautaId: {}", pautaId);
         return "Voto computado com sucesso";
@@ -120,7 +115,7 @@ public class PautaService {
         return resultado;
     }
 
-    private void verificaStatus(String pautaId) {
+    private Pauta verificaStatus(String pautaId) {
         logger.info("Início do método verificaStatus() para a pautaId: {}", pautaId);
 
         Pauta pauta = repository.findById(String.valueOf(new ObjectId(pautaId)))
@@ -136,6 +131,7 @@ public class PautaService {
         }
 
         logger.info("Fim do método verificaStatus() para a pautaId: {}", pautaId);
+        return pauta;
     }
 
 }
