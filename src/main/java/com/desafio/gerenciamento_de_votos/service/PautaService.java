@@ -76,9 +76,10 @@ public class PautaService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "A sessão não está aberta.");
         }
 
-        votoService.findByPautaIdAndAssociadoId(pautaId, associadoId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Associado já votou na pauta"));
-
+        Optional<Voto> votoExistente = votoService.findByPautaIdAndAssociadoId(pautaId, associadoId);
+        if (votoExistente.isPresent()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Associado já votou na pauta.");
+        }
         voto.setPautaId(pautaId);
         voto.setAssociadoId(associadoId);
         pautaVerificada.getVotos().add(voto);
